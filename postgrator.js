@@ -45,7 +45,6 @@ var sortMigrationsDesc = function (a, b) {
 var getMigrations = function () {
   migrations = []
   var migrationFiles = fs.readdirSync(config.migrationDirectory)
-  console.log(migrationFiles)
   migrationFiles.forEach(function (file) {
     var m = file.split('.')
     var name = m.length >= 3 ? m.slice(2, m.length - 1).join('.') : file
@@ -288,8 +287,6 @@ var getAllUnrunMigrations = function (callback) {
     potentialMigrations = migrations.map(function (migration) {
       return migration.version
     }).filter(onlyUnique)
-    console.log(potentialMigrations);
-    console.log(runVersions);
     var neededMigrations = subtractItems(potentialMigrations, runVersions)
     relevantMigrations = migrations.filter(function(value){
       return ((neededMigrations.indexOf(value.version) !== -1) && (value.direction === 'do'))

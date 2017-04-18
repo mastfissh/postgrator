@@ -4,7 +4,7 @@ var path = require('path')
 var fs = require('fs')
 
 var tests = []
-var pgUrl = 'tcp://:@localhost:5432/postgrator'
+var pgUrl = 'tcp://postgrator:postgrator@localhost:5432/postgrator'
 
 var migrationDirectory = path.join(__dirname, 'migrations')
 
@@ -155,30 +155,30 @@ buildTestsForConfig({
   host: 'localhost',
   port: 5432,
   database: 'postgrator',
-  username: '',
-  password: '',
+  username: 'postgrator',
+  password: 'postgrator',
   logProgress: false
 })
 
-// buildTestsForConfig({
-//   migrationDirectory: migrationDirectory,
-//   driver: 'mysql',
-//   host: 'localhost',
-//   port: 3306,
-//   database: 'test',
-//   username: 'root',
-//   password: 'root'
-// })
+buildTestsForConfig({
+  migrationDirectory: migrationDirectory,
+  driver: 'mysql',
+  host: 'localhost',
+  port: 3306,
+  database: 'test',
+  username: 'root',
+  password: 'root'
+})
 
-// buildTestsForConfig({
-//   migrationDirectory: migrationDirectory,
-//   driver: 'tedious',
-//   host: '127.0.0.1',
-//   port: 1433,
-//   database: 'Utility',
-//   username: 'sa',
-//   password: 'testuser'
-// })
+buildTestsForConfig({
+  migrationDirectory: migrationDirectory,
+  driver: 'tedious',
+  host: '127.0.0.1',
+  port: 1433,
+  database: 'Utility',
+  username: 'sa',
+  password: 'testuser'
+})
 
 /* Run the tests in an asyncy way
 ============================================================================= */

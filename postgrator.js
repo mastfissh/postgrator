@@ -45,6 +45,7 @@ var sortMigrationsDesc = function (a, b) {
 var getMigrations = function () {
   migrations = []
   var migrationFiles = fs.readdirSync(config.migrationDirectory)
+  console.log(migrationFiles)
   migrationFiles.forEach(function (file) {
     var m = file.split('.')
     var name = m.length >= 3 ? m.slice(2, m.length - 1).join('.') : file
@@ -277,25 +278,28 @@ function subtractItems(array1, array2) {
 }
 
 var getAllUnrunMigrations = function (callback) {
+  getMigrations()
   var relevantMigrations = []
-    config.logProgress && console.log('running all unrun migrations ')
-    runQuery(commonClient.queries.getRunVersions, function(err, versions){
-      runVersions = versions.rows.map(function(row){
-        return parseInt(row.version)
-      }).filter(noZeroes)
-      potentialMigrations = migrations.map(function (migration) {
-        return migration.version
-      }).filter(onlyUnique)
-      var neededMigrations = subtractItems(potentialMigrations, runVersions)
-      relevantMigrations = migrations.filter(function(value){
-        return ((neededMigrations.indexOf(value.version) !== -1) && (value.direction === 'do'))
-      }).sort(sortMigrationsAsc);
-      relevantMigrations = relevantMigrations.map(function(migration){
-        migration.schemaVersionSQL = config.driver === 'pg' || config.driver === 'pg.js' ? 'INSERT INTO ' + config.schemaTable + ' (version, name, md5) VALUES (' + migration.version + ", '" + migration.name + "', '" + migration.md5 + "');" : 'INSERT INTO ' + config.schemaTable + ' (version) VALUES (' + migration.version + ');'
-        return migration
-      })
-      callback(err,relevantMigrations);
+  config.logProgress && console.log('running all unrun migrations ')
+  runQuery(commonClient.queries.getRunVersions, function(err, versions){
+    runVersions = versions.rows.map(function(row){
+      return parseInt(row.version)
+    }).filter(noZeroes)
+    potentialMigrations = migrations.map(function (migration) {
+      return migration.version
+    }).filter(onlyUnique)
+    console.log(potentialMigrations);
+    console.log(runVersions);
+    var neededMigrations = subtractItems(potentialMigrations, runVersions)
+    relevantMigrations = migrations.filter(function(value){
+      return ((neededMigrations.indexOf(value.version) !== -1) && (value.direction === 'do'))
+    }).sort(sortMigrationsAsc);
+    relevantMigrations = relevantMigrations.map(function(migration){
+      migration.schemaVersionSQL = config.driver === 'pg' || config.driver === 'pg.js' ? 'INSERT INTO ' + config.schemaTable + ' (version, name, md5) VALUES (' + migration.version + ", '" + migration.name + "', '" + migration.md5 + "');" : 'INSERT INTO ' + config.schemaTable + ' (version) VALUES (' + migration.version + ');'
+      return migration
     })
+    callback(err,relevantMigrations);
+  })
 }
 
 /*

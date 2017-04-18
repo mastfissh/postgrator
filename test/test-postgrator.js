@@ -1,6 +1,7 @@
 var assert = require('assert')
 var async = require('async')
 var path = require('path')
+var fs = require('fs')
 
 var tests = []
 var pgUrl = 'tcp://:@localhost:5432/postgrator'
@@ -98,6 +99,24 @@ var buildTestsForConfig = function (config) {
       pg.runQuery('SELECT name, age FROM person', function (err, result) {
         assert.ifError(err)
         assert.equal(result.rows.length, 4, 'person table should have 4 records at this point')
+        pg.endConnection(callback)
+      })
+    })
+  })
+
+  tests.push(function (callback) {
+    console.log('\n----- ' + config.driver + ' edge case - what if 004 was merged in after 005 run?')
+    fs.renameSync('./test/migrations/004.do.notsql', './test/migrations/004.do.sql');
+    fs.renameSync('./test/migrations/004.undo.notsql', './test/migrations/004.undo.sql');
+    var pg = require('../postgrator.js')
+    pg.setConfig(config)
+    pg.migrate('max', function (err, migrations) {
+      fs.renameSync('./test/migrations/004.do.sql', './test/migrations/004.do.notsql');
+      fs.renameSync('./test/migrations/004.undo.sql', './test/migrations/004.undo.notsql');
+      assert.ifError(err)
+      pg.runQuery('SELECT name, age FROM person', function (err, result) {
+        assert.ifError(err)
+        assert.equal(result.rows.length, 5, 'person table should have 4 records at this point')
         pg.endConnection(callback)
       })
     })

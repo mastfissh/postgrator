@@ -3,7 +3,7 @@ var async = require('async')
 var path = require('path')
 
 var tests = []
-var pgUrl = 'tcp://postgrator:postgrator@localhost:5432/postgrator'
+var pgUrl = 'tcp://:@localhost:5432/postgrator'
 
 var migrationDirectory = path.join(__dirname, 'migrations')
 
@@ -87,10 +87,10 @@ var buildTestsForConfig = function (config) {
     })
   })
 
-  /* Go up to 'max' (4)
+  /* Go up to 'max' (5)
   ------------------------------------------------------------------------- */
   tests.push(function (callback) {
-    console.log('\n----- ' + config.driver + ' up to max (004) -----')
+    console.log('\n----- ' + config.driver + ' up to max (005) -----')
     var pg = require('../postgrator.js')
     pg.setConfig(config)
     pg.migrate('max', function (err, migrations) {
@@ -136,30 +136,30 @@ buildTestsForConfig({
   host: 'localhost',
   port: 5432,
   database: 'postgrator',
-  username: 'postgrator',
-  password: 'postgrator',
+  username: '',
+  password: '',
   logProgress: false
 })
 
-buildTestsForConfig({
-  migrationDirectory: migrationDirectory,
-  driver: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  database: 'test',
-  username: 'root',
-  password: 'root'
-})
+// buildTestsForConfig({
+//   migrationDirectory: migrationDirectory,
+//   driver: 'mysql',
+//   host: 'localhost',
+//   port: 3306,
+//   database: 'test',
+//   username: 'root',
+//   password: 'root'
+// })
 
-buildTestsForConfig({
-  migrationDirectory: migrationDirectory,
-  driver: 'tedious',
-  host: '127.0.0.1',
-  port: 1433,
-  database: 'Utility',
-  username: 'sa',
-  password: 'testuser'
-})
+// buildTestsForConfig({
+//   migrationDirectory: migrationDirectory,
+//   driver: 'tedious',
+//   host: '127.0.0.1',
+//   port: 1433,
+//   database: 'Utility',
+//   username: 'sa',
+//   password: 'testuser'
+// })
 
 /* Run the tests in an asyncy way
 ============================================================================= */

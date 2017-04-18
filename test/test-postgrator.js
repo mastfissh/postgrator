@@ -116,7 +116,7 @@ var buildTestsForConfig = function (config) {
       assert.ifError(err)
       pg.runQuery('SELECT name, age FROM person', function (err, result) {
         assert.ifError(err)
-        assert.equal(result.rows.length, 5, 'person table should have 4 records at this point')
+        assert.equal(result.rows.length, 5, 'person table should have 5 records at this point')
         pg.endConnection(callback)
       })
     })

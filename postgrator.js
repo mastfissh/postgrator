@@ -155,7 +155,7 @@ exports.getVersions = getVersions
   - if all goes as planned, we run the next migration
   - once all migrations have been run, we call the callback.
 ================================================================= */
-var runMigrations = function (migrations, currentVersion, targetVersion, finishedCallback) {
+var runMigrations = function (migrations, finishedCallback) {
   var runNext = function (i) {
     var sql = fs.readFileSync((config.migrationDirectory + '/' + migrations[i].filename), 'utf8')
     if (migrations[i].md5Sql) {
@@ -262,6 +262,42 @@ var getRelevantMigrations = function (currentVersion, targetVersion) {
   return relevantMigrations
 }
 
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
+}
+
+function noZeroes(value, index, self) {
+  return value !== 0;
+}
+
+function subtractItems(array1, array2) {
+  return array1.filter(function (item) {
+    return (array2.indexOf(item) === -1)
+  })
+}
+
+var getAllUnrunMigrations = function (callback) {
+  var relevantMigrations = []
+    config.logProgress && console.log('running all unrun migrations ')
+    runQuery(commonClient.queries.getRunVersions, function(err, versions){
+      runVersions = versions.rows.map(function(row){
+        return parseInt(row.version)
+      }).filter(noZeroes)
+      potentialMigrations = migrations.map(function (migration) {
+        return migration.version
+      }).filter(onlyUnique)
+      var neededMigrations = subtractItems(potentialMigrations, runVersions)
+      relevantMigrations = migrations.filter(function(value){
+        return ((neededMigrations.indexOf(value.version) !== -1) && (value.direction === 'do'))
+      }).sort(sortMigrationsAsc);
+      relevantMigrations = relevantMigrations.map(function(migration){
+        migration.schemaVersionSQL = config.driver === 'pg' || config.driver === 'pg.js' ? 'INSERT INTO ' + config.schemaTable + ' (version, name, md5) VALUES (' + migration.version + ", '" + migration.name + "', '" + migration.md5 + "');" : 'INSERT INTO ' + config.schemaTable + ' (version) VALUES (' + migration.version + ');'
+        return migration
+      })
+      callback(err,relevantMigrations);
+    })
+}
+
 /*
   .migrate(target, callback)
 
@@ -271,37 +307,53 @@ var getRelevantMigrations = function (currentVersion, targetVersion) {
   target - version to migrate to as string or number (will be handled as numbers internally)
   callback - callback to run after migrations have finished. function (err, migrations) {}
 ================================================================= */
+function migrateToMax(finishedCallback) {
+  getAllUnrunMigrations(function(err,relevantMigrations){
+    if (relevantMigrations.length > 0) {
+      runMigrations(relevantMigrations, function (err, migrations) {
+        finishedCallback(err, migrations)
+      })
+    } else {
+      if (finishedCallback) finishedCallback(err)
+    }
+  });
+}
+
 function migrate (target, finishedCallback) {
   prep(function (err) {
     if (err) {
       if (finishedCallback) finishedCallback(err)
     }
-    getMigrations()
     if (target && target === 'max') {
-      targetVersion = Math.max.apply(null, migrations.map(function (migration) { return migration.version }))
-    } else if (target) {
-      targetVersion = Number(target)
-    }
-    getCurrentVersion(function (err, currentVersion) {
-      if (err) {
-        config.logProgress && console.log('error getting current version')
-        if (finishedCallback) finishedCallback(err)
-      } else {
-        config.logProgress && console.log('version of database is: ' + currentVersion)
-        if (targetVersion === undefined) {
-          config.logProgress && console.log('no target version supplied - no migrations performed')
+      migrateToMax(finishedCallback);
+    } else {
+      getMigrations()
+      if (target && target === 'max') {
+        targetVersion = Math.max.apply(null, migrations.map(function (migration) { return migration.version }))
+      } else if (target) {
+        targetVersion = Number(target)
+      }
+      getCurrentVersion(function (err, currentVersion) {
+        if (err) {
+          config.logProgress && console.log('error getting current version')
+          if (finishedCallback) finishedCallback(err)
         } else {
-          var relevantMigrations = getRelevantMigrations(currentVersion, targetVersion)
-          if (relevantMigrations.length > 0) {
-            runMigrations(relevantMigrations, currentVersion, targetVersion, function (err, migrations) {
-              finishedCallback(err, migrations)
-            })
+          config.logProgress && console.log('version of database is: ' + currentVersion)
+          if (targetVersion === undefined) {
+            config.logProgress && console.log('no target version supplied - no migrations performed')
           } else {
-            if (finishedCallback) finishedCallback(err)
+            var relevantMigrations = getRelevantMigrations(currentVersion, targetVersion)
+            if (relevantMigrations.length > 0) {
+              runMigrations(relevantMigrations, function (err, migrations) {
+                finishedCallback(err, migrations)
+              })
+            } else {
+              if (finishedCallback) finishedCallback(err)
+            }
           }
         }
-      }
-    }) // get current version
+      })
+    }// get current version
   }) // prep
 }
 exports.migrate = migrate

@@ -299,7 +299,7 @@ getAllUnrunMigrations = function (callback) {
   })
 }
 
-function areMigrationsCurrent(err,callback){
+function areMigrationsCurrent(callback){
   getAllUnrunMigrations(function(err,migrations){
     if(err){
       callback(err);

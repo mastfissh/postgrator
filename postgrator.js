@@ -305,8 +305,6 @@ function areMigrationsCurrent(callback){
       callback(err);
     } else {
       var result = (migrations.length === 0);
-      console.log(migrations)
-      console.log("RESULT" + result)
       callback(err, result);
     }
   })

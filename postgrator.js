@@ -276,7 +276,7 @@ function subtractItems(array1, array2) {
   })
 }
 
-var getAllUnrunMigrations = function (callback) {
+getAllUnrunMigrations = function (callback) {
   getMigrations()
   var relevantMigrations = []
   config.logProgress && console.log('running all unrun migrations ')
@@ -298,6 +298,19 @@ var getAllUnrunMigrations = function (callback) {
     callback(err,relevantMigrations);
   })
 }
+
+function areMigrationsCurrent(err,callback){
+  getAllUnrunMigrations(function(err,migrations){
+    if(err){
+      callback(err);
+    } else {
+      var result = (migrations === []);
+      callback(err, result);
+    }
+  })
+}
+
+exports.areMigrationsCurrent = areMigrationsCurrent
 
 /*
   .migrate(target, callback)

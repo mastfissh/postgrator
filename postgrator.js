@@ -304,7 +304,7 @@ function areMigrationsCurrent(callback){
     if(err){
       callback(err);
     } else {
-      var result = (migrations === []);
+      var result = (migrations.length === 0);
       console.log(migrations)
       console.log("RESULT" + result)
       callback(err, result);

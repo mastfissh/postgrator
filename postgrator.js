@@ -279,7 +279,7 @@ function subtractItems(array1, array2) {
 getAllUnrunMigrations = function (callback) {
   getMigrations()
   var relevantMigrations = []
-  config.logProgress && console.log('running all unrun migrations ')
+  config.logProgress && console.log('determining all unrun migrations ')
   runQuery(commonClient.queries.getRunVersions, function(err, versions){
     runVersions = versions.rows.map(function(row){
       return parseInt(row.version)
@@ -324,10 +324,12 @@ exports.areMigrationsCurrent = areMigrationsCurrent
 function migrateToMax(finishedCallback) {
   getAllUnrunMigrations(function(err,relevantMigrations){
     if (relevantMigrations.length > 0) {
+      console.log("Running unrun migrations")
       runMigrations(relevantMigrations, function (err, migrations) {
         finishedCallback(err, migrations)
       })
     } else {
+      console.log("Already up to date")
       if (finishedCallback) finishedCallback(err)
     }
   });

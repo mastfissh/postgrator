@@ -300,13 +300,13 @@ getAllUnrunMigrations = function (callback) {
 }
 
 function areMigrationsCurrent(callback){
-  console.log("hugh")
   getAllUnrunMigrations(function(err,migrations){
-    console.log(migrations)
     if(err){
       callback(err);
     } else {
       var result = (migrations === []);
+      console.log(migrations)
+      console.log("RESULT" + result)
       callback(err, result);
     }
   })

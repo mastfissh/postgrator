@@ -281,6 +281,9 @@ getAllUnrunMigrations = function (callback) {
   var relevantMigrations = []
   config.logProgress && console.log('determining all unrun migrations ')
   runQuery(commonClient.queries.getRunVersions, function(err, versions){
+    if(!versions){
+      versions = {rows: []}
+    }
     runVersions = versions.rows.map(function(row){
       return parseInt(row.version)
     }).filter(noZeroes)

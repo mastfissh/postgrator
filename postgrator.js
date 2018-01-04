@@ -391,31 +391,7 @@ function prep (callback) {
       callback(err)
     } else {
       if (result.rows && result.rows.length > 0) {
-        if (config.driver === 'pg' || config.driver === 'pg.js') {
-          // config.schemaTable exists, does it have the md5 column? (PostgreSQL only)
-          runQuery("SELECT column_name, data_type, character_maximum_length FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + config.schemaTable + "' AND column_name = 'md5';", function (err, result) {
-            if (err) {
-              err.helpfulDescription = 'Prep() table CHECK MD5 COLUMN query Failed'
-              callback(err)
-            } else {
-              if (!result.rows || result.rows.length === 0) {
-                // md5 column doesn't exist, add it
-                runQuery('ALTER TABLE ' + config.schemaTable + " ADD COLUMN md5 text DEFAULT '';", function (err, result) {
-                  if (err) {
-                    err.helpfulDescription = 'Prep() table ADD MD5 COLUMN query Failed'
-                    callback(err)
-                  } else {
-                    callback()
-                  }
-                })
-              } else {
-                callback()
-              }
-            }
-          })
-        } else {
-          callback()
-        }
+        callback()
       } else {
         config.logProgress && console.log('table ' + config.schemaTable + ' does not exist - creating it.')
         runQuery(commonClient.queries.makeTable, function (err, result) {
